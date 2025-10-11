@@ -1,4 +1,9 @@
-# FishNet: Phishing Detection Using Browser Extensions
+<h1 align="center">
+FishNet: Phishing Detection Using Browser Extensions
+</h1>
+<div align="center">
+<img src="https://github.com/user-attachments/assets/b9ae163c-8094-46a4-b2ba-1ca184ceb2eb" width=300>
+</div>
 
 ## Overview
 
