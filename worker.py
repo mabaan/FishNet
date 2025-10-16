@@ -74,21 +74,37 @@ def get_url_similarity_index(src, candidates=[]):
 
     return scores
 
-suspicious = "goog1e.com"
-candidates = get_USI_candidates(suspicious)
+def classify_usi(usi_scores):
+    # Pick the best (highest) USI score
+    best_domain, best_score = max(usi_scores.items(), key=lambda x: x[1])
 
-usi_scores = get_url_similarity_index(suspicious, candidates)
-
-for domain,score in usi_scores.items():
-    if score >= 98:
+    # Apply PhiUSIIL-style thresholds
+    if best_score >= 98:
         verdict = "LEGITIMATE"
-    elif score >= 90:
+    elif best_score >= 90:
         verdict = "PHISHING"
-    elif score >= 80:
+    elif best_score >= 80:
         verdict = "LIKELY_PHISHING"
-    elif score >= 60:
+    elif best_score >= 60:
         verdict = "SEND_TO_MODEL"
     else:
         verdict = "LEGITIMATE"
 
-    print(f"Domain: {domain}, Score: {score}, Verdict: {verdict}")
+    print(f"Best match: {best_domain}")
+    print(f"Best USI: {best_score}")
+    print(f"Verdict: {verdict}\n")
+
+    # Optionally return them for further logic
+    return {
+        "best_domain": best_domain,
+        "best_usi": best_score,
+        "verdict": verdict
+    }
+
+# ---- MAIN ----
+suspicious = "paypa1.com"
+
+candidates = get_USI_candidates(suspicious)
+usi_scores = get_url_similarity_index(suspicious, candidates)
+final_result = classify_usi(usi_scores)
+
