@@ -4,32 +4,12 @@ import faiss
 import pickle
 import Levenshtein
 
-
-# def train_and_save():
-    # legit_domains = np.array(["paypal.com", "google.com", "facebook.com"])
-    
-    # vectorizer = TfidfVectorizer(analyzer="char", ngram_range=(3, 5))
-    # X = vectorizer.fit_transform(legit_domains).astype(np.float32).toarray()
-    # faiss.normalize_L2(X)
-    
-    # # FAISS stores vectors only
-    # index = faiss.IndexFlatIP(X.shape[1])
-    # index.add(X)
-    # faiss.write_index(index, 'domain_index.faiss')
-    
-    # model_data stores the context/mapping
-    # with open('model_data.pkl', 'wb') as f:
-    #     pickle.dump({
-    #         'vectorizer': vectorizer,
-    #         'legit_domains': legit_domains
-    #     }, f)
-
 def query_domain(suspicious_domain):
     # Load FAISS (vectors only)
-    index = faiss.read_index('domain_index.faiss')
+    index = faiss.read_index('faiss_data/domain_index.faiss')
     
     # Load context/mapping
-    with open('model_data.pkl', 'rb') as f:
+    with open('faiss_data/model_data.pkl', 'rb') as f:
         model_data = pickle.load(f)
     
     # Transform query using saved vectorizer
@@ -47,9 +27,6 @@ def query_domain(suspicious_domain):
     
     results.sort(key=lambda x: x[1], reverse=True)
     return results
-
-# Usage
-# train_and_save()
 
 def get_USI_candidates(suspicious_domain, top_k=3):
     print("Suspicious domain:", suspicious_domain, "\n")
@@ -102,7 +79,7 @@ def classify_usi(usi_scores):
     }
 
 # ---- MAIN ----
-suspicious = "paypa1.com"
+suspicious = "amazon.com"
 
 candidates = get_USI_candidates(suspicious)
 usi_scores = get_url_similarity_index(suspicious, candidates)
