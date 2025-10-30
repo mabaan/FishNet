@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 350px;
+      min-height: 200px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .header p {
+      margin: 5px 0 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .verdict {
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .verdict.legitimate {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .verdict.phishing {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+
+    .verdict.likely-phishing {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+
+    .verdict.send-to-model {
+      background: #E3F2FD;
+      color: #1565C0;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .info-value {
+      color: #333;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .url-display {
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      word-break: break-all;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .check-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .check-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .check-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .score-high {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+
+    .score-medium {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+
+    .score-low {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🛡️ Phishing Detector</h1>
+    <p>URL Security Analysis</p>
+  </div>
+
+  <div class="content">
+    <div id="loading" class="loading">
+      <p>Loading...</p>
+    </div>
+
+    <div id="result" style="display: none;">
+      <div class="url-display" id="urlDisplay"></div>
+      
+      <div id="verdictDisplay" class="verdict"></div>
+
+      <div class="result-card">
+        <div class="info-row">
+          <span class="info-label">Analysis Stage</span>
+          <span class="info-value" id="stage"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">USI Score</span>
+          <span class="info-value" id="usiScore"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Similar Domain</span>
+          <span class="info-value" id="bestMatch"></span>
+        </div>
+        <div class="info-row" id="mlRow" style="display: none;">
+          <span class="info-label">ML Confidence</span>
+          <span class="info-value" id="confidence"></span>
+        </div>
+      </div>
+
+      <button id="recheckBtn" class="check-btn">Recheck URL</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
