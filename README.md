@@ -7,18 +7,19 @@ FishNet: Phishing Detection Using Browser Extensions
 
 ## Overview
 
-FishNet is a lightweight browser extension designed to detect phishing websites in real time through a combination of heuristic rules, domain intelligence, and machine learning inference. The system integrates local detection with a secure cloud backend to identify suspicious pages, display clear warnings, and collect anonymized reports to improve detection quality.
+FishNet is a lightweight Chrome browser extension that detects phishing websites in real time using a two-stage detection system: URL Suspicion Index (USI) algorithm with FAISS-based domain similarity matching, backed by a machine learning classifier for suspicious URLs. The extension automatically checks pages on load and displays simple binary verdicts (Safe/Phishing) to users with detailed analysis available on demand.
 
-The project also includes a human-centered usability study that evaluates user trust, clarity, and compliance with phishing warnings.
+The system includes a Flask backend for USI calculation and ML inference, plus a user feedback mechanism to report misclassifications for future model improvements.
 
 ---
 
 ## Objectives
 
-1. Develop a functional browser extension using Manifest V3 and TypeScript.
-2. Implement cloud-based model inference for accurate phishing detection.
-3. Follow OWASP extension security guidelines.
-4. Evaluate user perception and behavior through a small-scale usability study.
+1. Build a functional Chrome extension using Manifest V3 with automatic phishing detection.
+2. Implement USI algorithm using FAISS vector database for fast domain similarity checks.
+3. Deploy ANN model with high accuracy for suspicious URL classification.
+4. Provide simple, user-friendly interface with binary Safe/Phishing verdicts.
+5. Enable user feedback reporting for continuous model improvement.
 
 ---
 
@@ -26,142 +27,66 @@ The project also includes a human-centered usability study that evaluates user t
 
 **Frontend (Extension)**
 
-* TypeScript
-* React + Vite (for popup UI and build)
-* Tailwind CSS (styling)
-* Chrome Extension APIs (Manifest V3)
+* Vanilla JavaScript (Chrome Manifest V3)
+* HTML/CSS for popup UI
+* Chrome Extension APIs (background service worker, content scripts)
 
-**Backend (Cloud API)**
+**Backend (Local API)**
 
-* Flask (Python) or FastAPI for inference
-* scikit-learn or TensorFlow for model development
-* Google Cloud Run for hosting the API
+* Flask (Python) running on localhost:5000
+* scikit-learn (Logistic Regression model)
+* FAISS (Facebook AI Similarity Search) for domain vector database
+* Joblib for model serialization
 
 **Machine Learning**
 
 * Jupyter Notebook for model training and evaluation
-* UCI Phishing Websites Dataset and PhiUSIIL Phishing URL Dataset (2024)
+* PhiUSIIL Phishing URL Dataset (2024)
+* Logistic Regression classifier (99.66% accuracy)
+* StandardScaler for feature normalization
+* 19 extracted features including URL structure, domain characteristics, and page content analysis
 
-**Security and Testing**
+**Detection System**
 
-* OWASP ZAP for vulnerability scanning
-* Chrome Developer Tools and Lighthouse for debugging and performance testing
-
----
-
-## Directory Structure
-
-```plaintext
-fishnet/
-├── extension/
-│   ├── src/
-│   │   ├── background.ts
-│   │   ├── content.ts
-│   │   ├── popup/
-│   │   │   ├── Popup.tsx
-│   │   │   ├── Popup.css
-│   │   │   └── index.tsx
-│   │   ├── utils/
-│   │   │   ├── heuristics.ts
-│   │   │   ├── blacklist.ts
-│   │   │   └── whois.ts
-│   ├── public/
-│   │   ├── icons/
-│   │   │   ├── icon16.png
-│   │   │   ├── icon48.png
-│   │   │   └── icon128.png
-│   │   └── manifest.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── vite.config.ts
-│
-├── backend/
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── models/
-│   │   └── phishing_model.pkl
-│   └── utils/
-│       ├── preprocess.py
-│       └── inference.py
-│
-├── ml/
-│   ├── train_model.ipynb
-│   └── phishing_dataset.csv
-│
-├── docs/
-│   ├── proposal.pdf
-│   ├── evaluation_plan.md
-│   └── README.md
-│
-├── .gitignore
-├── LICENSE
-└── README.md
-```
+* USI Algorithm: Weighted character-by-character domain similarity scoring
+* FAISS Index: 1M legitimate domains for typosquatting detection
+* Threshold-based classification
 
 ---
 
-## Directory Explanation
+## System Architecture
 
-### **extension/**
+### **Detection Flow**
 
-Contains all files related to the Chrome browser extension.
+1. User navigates to a URL
+2. Extension service worker (`background.js`) captures the URL
+3. Backend calculates USI score using FAISS domain similarity
+4. Decision based on threshold:
+5. Extension displays binary Safe/Phishing verdict to user
+6. User can view detailed analysis and report misclassifications
 
-* **src/**: Core logic and source code for the extension.
+### **Extension Components**
 
-  * `background.ts`: Main service worker controlling extension events and message handling.
-  * `content.ts`: Injected script for scanning page content and extracting features.
-  * **popup/**: React-based popup interface displayed when the user interacts with the extension.
+* `background.js`: Service worker that monitors page loads, sends URLs to backend, receives classification results, and manages popup display. Only triggers popup for non-legitimate sites.
+* `content.js`: Extracts 19 features from web pages including URL structure (length, domain, TLD, subdomains, special characters), security indicators (HTTPS), and page content analysis (title, favicon, forms, Bank/Pay/Crypto keywords).
+* `popup.html` / `popup.js`: Minimal UI showing Safe/Phishing verdict, URL being analyzed, collapsible details panel with risk score and matched domain, and report button for user feedback.
+* `manifest.json`: Chrome Manifest V3 configuration with permissions for activeTab, storage, and localhost:5000 API access.
 
-    * `Popup.tsx`: Main React component for the popup UI.
-    * `Popup.css`: Styling for the popup interface.
-    * `index.tsx`: Entry point that mounts the popup component.
-  * **utils/**: Helper modules.
+### **Backend Components**
 
-    * `heuristics.ts`: Implements local rule-based phishing checks.
-    * `blacklist.ts`: Interfaces with cached blacklists and APIs like PhishTank.
-    * `whois.ts`: Fetches domain intelligence and WHOIS-based signals.
-* **public/**: Static assets such as icons and the manifest file.
+* `flask_server.py`: Flask REST API with three endpoints:
+  - `/check_usi`: Calculate USI score and return classification
+  - `/classify`: ML model inference for suspicious URLs
+  - `/report`: Save user feedback to JSON for retraining
+* `worker.py`: USI algorithm implementation using FAISS vector search with weighted character-by-character similarity scoring and position-based decay.
+* `evaluate_model.py`: Model evaluation showing confusion matrix, classification report, 99.66% accuracy, 99.49% precision, 99.93% recall.
+* `evaluate_usi.py`: USI algorithm testing against known phishing/legitimate patterns, measuring typosquatting detection accuracy.
 
-  * `manifest.json`: Chrome Manifest V3 configuration file.
-  * **icons/**: Icon set for the extension.
-* `package.json`: Dependency definitions for the extension build.
-* `tsconfig.json`: TypeScript compiler configuration.
-* `vite.config.ts`: Build configuration using Vite and CRXJS plugin.
+### **Machine Learning**
 
-### **backend/**
-
-Contains the server-side code used for model inference and API hosting.
-
-* `app.py`: Flask or FastAPI entry point exposing endpoints for phishing prediction.
-* `requirements.txt`: Python dependencies for backend and model inference.
-* **models/**: Pre-trained machine learning models.
-
-  * `phishing_model.pkl`: Serialized phishing detection model.
-* **utils/**: Support scripts.
-
-  * `preprocess.py`: Feature preprocessing and normalization.
-  * `inference.py`: Model loading and prediction logic.
-
-### **ml/**
-
-Includes datasets and notebooks for machine learning training and testing.
-
-* `train_model.ipynb`: Jupyter notebook for model experimentation and training.
-* `phishing_dataset.csv`: Combined dataset used for model training.
-
-### **docs/**
-
-Contains project documentation and reports.
-
-* `proposal.pdf`: Original project proposal submission.
-* `evaluation_plan.md`: Human-centered study and technical evaluation details.
-* `README.md`: Documentation for reports and academic deliverables.
-
-### **Root Files**
-
-* `.gitignore`: Specifies files to exclude from version control.
-* `LICENSE`: License file for open-source or internal distribution.
-* `README.md`: Primary documentation explaining the repository and structure.
+* `model.ipynb`: Training pipeline using PhiUSIIL dataset with StandardScaler normalization and Logistic Regression classifier.
+* 19 features extracted: URLLength, DomainLength, IsDomainIP, TLDLength, NoOfSubDomain, NoOfLettersInURL, NoOfDegitsInURL, NoOfEqualsInURL, NoOfQMarkInURL, NoOfAmpersandInURL, IsHTTPS, HasTitle, HasFavicon, HasSubmitButton, HasHiddenFields, HasPasswordField, Bank, Pay, Crypto.
+* Model achieves 99.66% accuracy with strong performance on both phishing and legitimate URLs.
 
 ---
 
@@ -169,48 +94,122 @@ Contains project documentation and reports.
 
 ### Prerequisites
 
-* Node.js v18 or later
 * Python 3.10 or later
-* Google Cloud SDK (for deployment)
+* Chrome browser
+* Git (for cloning repository)
 
 ### Setup
 
-1. **Install frontend dependencies**
+1. **Clone the repository**
 
    ```bash
-   cd extension
-   npm install
-   npm run dev
+   git clone https://github.com/mabaan/FishNet.git
+   cd FishNet
    ```
 
-2. **Set up backend**
+2. **Set up Python virtual environment**
 
    ```bash
-   cd ../backend
+   python -m venv .venv
+   source .venv/Scripts/activate  # Windows
+   # source .venv/bin/activate    # Linux/Mac
+   ```
+
+3. **Install backend dependencies**
+
+   ```bash
+   cd backend
    pip install -r requirements.txt
-   python app.py
    ```
 
-3. **Load extension in Chrome**
+4. **Start Flask server**
 
-   * Open Chrome and navigate to `chrome://extensions/`.
-   * Enable **Developer Mode**.
-   * Click **Load unpacked** and select the `extension/dist/` folder after building.
+   ```bash
+   python flask_server.py
+   ```
+   
+   Server will run on `http://localhost:5000`
+
+5. **Load extension in Chrome**
+
+   * Open Chrome and navigate to `chrome://extensions/`
+   * Enable **Developer Mode** (top right toggle)
+   * Click **Load unpacked**
+   * Select the `extension/` folder from the repository
+   * Extension icon should appear in toolbar
+
+### Usage
+
+1. Ensure Flask backend is running on localhost:5000
+2. Navigate to any website in Chrome
+3. Extension automatically checks the URL in background
+4. If suspicious, popup opens showing Safe/Phishing verdict
+5. Click extension icon anytime to see current page analysis
+6. Use "Report Incorrect Classification" button to provide feedback
+
+### Evaluation
+
+**Test ML Model Performance:**
+```bash
+cd backend
+python evaluate_model.py
+```
+
+**Test USI Algorithm:**
+```bash
+cd backend
+python evaluate_usi.py
+```
 
 ---
 
-## Security Practices
+## Features
 
-* Follow OWASP recommendations for browser extensions.
-* Avoid inline scripts and remote code execution.
-* Use strict Content Security Policy (CSP).
-* Do not store secrets or API keys client-side.
-* All API communication must use HTTPS.
+* **Two-Stage Detection**: Fast USI algorithm filters most URLs, ML model handles edge cases
+* **Real-Time Checking**: Automatic background monitoring of page loads
+* **User-Friendly Interface**: Simple Safe/Phishing binary verdicts without technical jargon
+* **Detailed Analysis**: Collapsible panel shows risk score and matched domain for interested users
+* **User Feedback**: Report button saves misclassifications for model retraining
+* **High Accuracy**: 99.66% ML model accuracy with comprehensive feature extraction
+* **Local Backend**: Runs on localhost for privacy and low latency
+* **Comprehensive Keywords**: 28 bank terms, 29 payment terms, 38 crypto terms for content analysis
+
+---
+
+## Performance Metrics
+
+**ML Model (Logistic Regression):**
+- Accuracy: 99.66%
+- Precision: 99.49%
+- Recall: 99.93%
+- F1 Score: 99.71%
+
+**Confusion Matrix:**
+- True Negatives: 19,985
+- False Positives: 139
+- False Negatives: 20
+- True Positives: 27,015
+
+**USI Algorithm:**
+- 65.22% accuracy on typosquatting test cases
+- Fast FAISS-based similarity search
+- Effective at catching obvious domain spoofing
+
+---
+
+## Future Improvements
+
+* Deploy backend to cloud for broader accessibility
+* Use a language model to create more detailed and situation specific texts
+* Expand FAISS database with more recent domains
+* Implement active learning pipeline using reported misclassifications
+* Add multilingual support for international phishing detection
+* A/B test different UI designs for user trust and compliance
 
 ---
 
 ## License
 
-This project is licensed under the MIT License unless otherwise stated.
+This project is licensed under the MIT License.
 
 ---
