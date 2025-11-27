@@ -128,36 +128,62 @@ class URLFeatureExtractor {
 
     /**
      * Bank - Check for banking-related keywords in HTML content
+     * Comprehensive list of banking terms commonly used in phishing attacks
      */
     hasBankKeywords() {
         if (!this.document) return 0;
         
         const htmlContent = this.document.body ? this.document.body.textContent.toLowerCase() : '';
-        const bankKeywords = ['bank', 'banking', 'account', 'credit', 'debit'];
+        const bankKeywords = [
+            'bank', 'banking', 'account', 'credit', 'debit',
+            'loan', 'mortgage', 'savings', 'checking', 'balance',
+            'transfer', 'wire', 'deposit', 'withdrawal', 'atm',
+            'card', 'mastercard', 'visa', 'amex', 'discover',
+            'routing', 'swift', 'iban', 'branch', 'financial',
+            'funds', 'transaction', 'statement', 'overdraft'
+        ];
         
         return bankKeywords.some(keyword => htmlContent.includes(keyword)) ? 1 : 0;
     }
 
     /**
      * Pay - Check for payment-related keywords in HTML content
+     * Common payment terms used in e-commerce and phishing sites
      */
     hasPayKeywords() {
         if (!this.document) return 0;
         
         const htmlContent = this.document.body ? this.document.body.textContent.toLowerCase() : '';
-        const payKeywords = ['pay', 'payment', 'checkout', 'purchase', 'billing'];
+        const payKeywords = [
+            'pay', 'payment', 'checkout', 'purchase', 'billing',
+            'invoice', 'receipt', 'charge', 'subscription', 'renew',
+            'paypal', 'stripe', 'square', 'venmo', 'cashapp',
+            'cart', 'order', 'buy', 'price', 'total',
+            'shipping', 'delivery', 'refund', 'cancel', 'upgrade',
+            'premium', 'plan', 'membership', 'donate'
+        ];
         
         return payKeywords.some(keyword => htmlContent.includes(keyword)) ? 1 : 0;
     }
 
     /**
      * Crypto - Check for cryptocurrency-related keywords in HTML content
+     * Popular crypto terms targeted in phishing scams
      */
     hasCryptoKeywords() {
         if (!this.document) return 0;
         
         const htmlContent = this.document.body ? this.document.body.textContent.toLowerCase() : '';
-        const cryptoKeywords = ['crypto', 'bitcoin', 'ethereum', 'blockchain', 'wallet', 'btc', 'eth'];
+        const cryptoKeywords = [
+            'crypto', 'bitcoin', 'ethereum', 'blockchain', 'wallet',
+            'btc', 'eth', 'coin', 'token', 'nft',
+            'mining', 'miner', 'hash', 'ledger', 'exchange',
+            'binance', 'coinbase', 'kraken', 'metamask', 'trustwallet',
+            'doge', 'dogecoin', 'litecoin', 'ripple', 'cardano',
+            'solana', 'polkadot', 'defi', 'staking', 'airdrop',
+            'ico', 'whitepaper', 'hodl', 'satoshi', 'seed phrase',
+            'private key', 'public key', 'cold wallet', 'hot wallet'
+        ];
         
         return cryptoKeywords.some(keyword => htmlContent.includes(keyword)) ? 1 : 0;
     }
@@ -263,60 +289,4 @@ function extractFeaturesFromPage() {
   }
 }
 
-function showPhishingWarning(result) {
-  // Create a warning banner at the top of the page
-  const existingWarning = document.getElementById('phishing-detector-warning');
-  if (existingWarning) {
-    existingWarning.remove();
-  }
-
-  const warning = document.createElement('div');
-  warning.id = 'phishing-detector-warning';
-  warning.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: ${result.verdict === 'PHISHING' ? '#F44336' : '#FF9800'};
-    color: white;
-    padding: 15px;
-    text-align: center;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    z-index: 999999;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  `;
-
-  const message = result.verdict === 'PHISHING' 
-    ? '⚠️ WARNING: This site may be a phishing attempt!'
-    : '⚠ CAUTION: This site shows suspicious characteristics.';
-
-  warning.innerHTML = `
-    <strong>${message}</strong>
-    <br>
-    <small>Similar to: ${result.bestMatch} (Score: ${result.usiScore})</small>
-    <button id="dismiss-warning" style="
-      margin-left: 20px;
-      padding: 5px 15px;
-      background: white;
-      color: #333;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-    ">Dismiss</button>
-  `;
-
-  document.body.insertBefore(warning, document.body.firstChild);
-
-  // Add dismiss functionality
-  document.getElementById('dismiss-warning').addEventListener('click', () => {
-    warning.remove();
-  });
-
-  // Auto-dismiss after 30 seconds
-  setTimeout(() => {
-    if (warning.parentNode) {
-      warning.remove();
-    }
-  }, 30000);
-}
+// In-page warning banner removed - user only sees extension popup

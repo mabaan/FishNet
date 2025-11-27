@@ -133,7 +133,6 @@ def classify_usi(usi_scores):
         verdict = "LEGITIMATE"
         reason = "Exact match to verified domain"
     # High similarity but not exact - could be regional variant OR typosquatting
-    # Score 96-97.9 is risky zone - needs careful threshold
     elif best_score >= 97:
         verdict = "LEGITIMATE"
         reason = "Legitimate regional variant"
@@ -141,15 +140,11 @@ def classify_usi(usi_scores):
     elif best_score >= 90:
         verdict = "PHISHING"
         reason = f"Suspicious similarity to {best_domain} - likely typosquatting or impersonation"
-    # 70-89.9: Clear phishing attempts (hyphens, extra words)
-    elif best_score >= 70:
+    # 75-89.9: Clear phishing attempts (hyphens, extra words)
+    elif best_score >= 75:
         verdict = "PHISHING"
         reason = f"Suspicious similarity to {best_domain} - likely impersonation attempt"
-    # 55-69.9: Moderate similarity - possible attack
-    elif best_score >= 55:
-        verdict = "LIKELY_PHISHING"
-        reason = f"Moderate similarity to {best_domain} - possible typosquatting"
-    # <55: Low similarity - send to ML model for feature-based analysis
+    # <75: Unknown domains or low similarity - let ML model decide using features
     else:
         verdict = "SEND_TO_MODEL"
         reason = "Requires advanced analysis"

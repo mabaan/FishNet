@@ -2,196 +2,197 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --accent-safe: #00e676;
+      --accent-danger: #ff1744;
+      --accent-warn: #ff9100;
+      --card-bg: rgba(255, 255, 255, 0.05);
+    }
+
     body {
-      width: 350px;
-      min-height: 200px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: 320px;
+      min-height: 350px;
+      font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
     }
 
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .header p {
-      margin: 5px 0 0 0;
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 20px;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 40px 20px;
-      color: #666;
-    }
-
-    .result-card {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .verdict {
-      font-size: 24px;
-      font-weight: 600;
-      text-align: center;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-
-    .verdict.legitimate {
-      background: #E8F5E9;
-      color: #2E7D32;
-    }
-
-    .verdict.phishing {
-      background: #FFEBEE;
-      color: #C62828;
-    }
-
-    .verdict.likely-phishing {
-      background: #FFF3E0;
-      color: #E65100;
-    }
-
-    .verdict.send-to-model {
-      background: #E3F2FD;
-      color: #1565C0;
-    }
-
-    .info-row {
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+    
+    .logo { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+
+    /* --- HERO SECTION (The Minimal View) --- */
+    .hero-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
     }
 
-    .info-row:last-child {
-      border-bottom: none;
+    .status-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 15px rgba(0,0,0,0.5));
     }
 
-    .info-label {
-      color: #666;
-      font-size: 13px;
+    .verdict-text {
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
     }
 
-    .info-value {
-      color: #333;
-      font-weight: 500;
-      font-size: 13px;
-    }
-
-    .url-display {
-      background: #f9f9f9;
-      padding: 10px;
-      border-radius: 4px;
+    .url-tiny {
+      margin-top: 8px;
       font-size: 12px;
-      word-break: break-all;
-      color: #666;
-      margin-bottom: 15px;
+      color: var(--text-secondary);
+      opacity: 0.7;
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .check-btn {
+    /* --- THE "YAP" BUTTON (i) --- */
+    .info-toggle-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .info-toggle-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* --- HIDDEN DETAILS PANEL --- */
+    .details-panel {
+      max-height: 0;
+      overflow: hidden;
+      background: rgba(0,0,0,0.2);
+      margin: 0 20px;
+      border-radius: 12px;
+      transition: max-height 0.4s ease-in-out, opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    .details-panel.open {
+      max-height: 300px; /* Enough to fit content */
+      opacity: 1;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 16px;
+    }
+
+    /* Simple Fact Styling */
+    .fact-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+    .fact-val { color: white; font-weight: 600; }
+    
+    /* --- FOOTER ACTION --- */
+    .footer {
+      padding: 20px;
+      margin-top: auto;
+    }
+
+    .scan-btn {
       width: 100%;
       padding: 12px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #2d3748;
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: background 0.2s;
     }
+    .scan-btn:hover { background: #4a5568; }
 
-    .check-btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .check-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .score-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .score-high {
-      background: #FFEBEE;
-      color: #C62828;
-    }
-
-    .score-medium {
-      background: #FFF3E0;
-      color: #E65100;
-    }
-
-    .score-low {
-      background: #E8F5E9;
-      color: #2E7D32;
-    }
+    /* UTILS */
+    .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+    .hidden { display: none; }
+    
+    /* Dynamic Color Classes */
+    .c-safe { color: var(--accent-safe); }
+    .c-danger { color: var(--accent-danger); }
+    .c-warn { color: var(--accent-warn); }
   </style>
 </head>
 <body>
+
   <div class="header">
-    <h1>🛡️ Phishing Detector</h1>
-    <p>URL Security Analysis</p>
+    <div class="logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      FishNet
+    </div>
   </div>
 
-  <div class="content">
-    <div id="loading" class="loading">
-      <p>Loading...</p>
+  <div id="loading" class="loading">Analyzing...</div>
+
+  <div id="result" class="hidden">
+    
+    <div class="hero-container">
+      <div id="statusIcon" class="status-icon"></div>
+      <h1 id="verdictText" class="verdict-text">--</h1>
+      <div id="urlDisplay" class="url-tiny">--</div>
+
+      <button id="toggleDetails" class="info-toggle-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        View Analysis
+      </button>
     </div>
 
-    <div id="result" style="display: none;">
-      <div class="url-display" id="urlDisplay"></div>
-      
-      <div id="verdictDisplay" class="verdict"></div>
-
-      <div class="result-card">
-        <div class="info-row">
-          <span class="info-label">Analysis Stage</span>
-          <span class="info-value" id="stage"></span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">USI Score</span>
-          <span class="info-value" id="usiScore"></span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Similar Domain</span>
-          <span class="info-value" id="bestMatch"></span>
-        </div>
-        <div class="info-row" id="mlRow" style="display: none;">
-          <span class="info-label">ML Confidence</span>
-          <span class="info-value" id="confidence"></span>
-        </div>
+    <div id="detailsPanel" class="details-panel">
+      <div class="fact-row">
+        <span>Risk Score</span>
+        <span id="scoreVal" class="fact-val">--</span>
       </div>
+      <div class="fact-row">
+        <span>Matched Domain</span>
+        <span id="domainVal" class="fact-val" style="font-family: monospace;">--</span>
+      </div>
+      <div id="explanation" style="margin-top: 16px; font-size: 13px; line-height: 1.5; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border-left: 3px solid rgba(255,255,255,0.2);">
+        Analyzing site safety...
+      </div>
+    </div>
 
-      <button id="recheckBtn" class="check-btn">Recheck URL</button>
+    <div class="footer">
+      <button id="recheckBtn" class="scan-btn">Re-scan Page</button>
+      <button id="reportBtn" class="report-btn" style="width: 100%; padding: 10px; margin-top: 10px; background: rgba(255,255,255,0.1); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s;">📝 Report Incorrect Classification</button>
     </div>
   </div>
 
