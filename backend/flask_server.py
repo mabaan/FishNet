@@ -119,6 +119,54 @@ def prepare_features(features_dict):
     return X_scaled_df
 
 
+@app.route('/report', methods=['POST'])
+def report_misclassification():
+    """
+    User feedback endpoint - saves reports for model retraining
+    Users report when they think the classification is wrong
+    """
+    import json
+    import os
+    from datetime import datetime
+    
+    try:
+        data = request.json
+        
+        # Add server timestamp
+        data['server_timestamp'] = datetime.now().isoformat()
+        
+        # Append to reports.json file
+        reports_file = 'misclassification_reports.json'
+        
+        # Load existing reports or create new list
+        if os.path.exists(reports_file):
+            with open(reports_file, 'r') as f:
+                try:
+                    reports = json.load(f)
+                except json.JSONDecodeError:
+                    reports = []
+        else:
+            reports = []
+        
+        # Append new report
+        reports.append(data)
+        
+        # Save back to file
+        with open(reports_file, 'w') as f:
+            json.dump(reports, f, indent=2)
+        
+        print(f"Report saved: {data['url']} - Predicted: {data['predicted_verdict']}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Report saved for retraining',
+            'total_reports': len(reports)
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint"""
@@ -135,5 +183,6 @@ if __name__ == '__main__':
     print("Endpoints:")
     print("  POST /check_usi - Check URL Similarity Index")
     print("  POST /classify - ML Classification")
+    print("  POST /report - Report misclassification")
     print("  GET /health - Health check")
     app.run(debug=True, port=5000)
