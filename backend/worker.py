@@ -128,18 +128,28 @@ def get_url_similarity_index(src, candidates=[]):
 def classify_usi(usi_scores):
     best_domain, best_score = max(usi_scores.items(), key=lambda x: x[1])
 
+    # Exact match (100%) or very close match (99-98%)
     if best_score >= 98:
         verdict = "LEGITIMATE"
         reason = "Exact match to verified domain"
-    elif best_score >= 93:
+    # High similarity but not exact - could be regional variant OR typosquatting
+    # Score 96-97.9 is risky zone - needs careful threshold
+    elif best_score >= 97:
         verdict = "LEGITIMATE"
         reason = "Legitimate regional variant"
-    elif best_score >= 65:
+    # 90-96.9: High similarity but likely typosquatting (single char changes)
+    elif best_score >= 90:
+        verdict = "PHISHING"
+        reason = f"Suspicious similarity to {best_domain} - likely typosquatting or impersonation"
+    # 70-89.9: Clear phishing attempts (hyphens, extra words)
+    elif best_score >= 70:
         verdict = "PHISHING"
         reason = f"Suspicious similarity to {best_domain} - likely impersonation attempt"
-    elif best_score >= 50:
+    # 55-69.9: Moderate similarity - possible attack
+    elif best_score >= 55:
         verdict = "LIKELY_PHISHING"
         reason = f"Moderate similarity to {best_domain} - possible typosquatting"
+    # <55: Low similarity - send to ML model for feature-based analysis
     else:
         verdict = "SEND_TO_MODEL"
         reason = "Requires advanced analysis"
